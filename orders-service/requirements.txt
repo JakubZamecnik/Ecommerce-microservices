@@ -6,3 +6,5 @@ alembic            # Migrace databáze (nutnost pro mediora)
 uvicorn
 pika  # Standardní Python knihovna pro RabbitMQ
 pydantic-settings
+pytest
+httpx

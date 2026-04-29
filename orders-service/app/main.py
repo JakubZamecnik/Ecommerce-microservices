@@ -28,11 +28,12 @@ engine = create_engine(settings.database_url)
 
 # --- 3. POMOCNÉ FUNKCE (RABBITMQ) ---
 def publish_order_created(order: Order):
-    """Odesílá informaci o nové objednávce do RabbitMQ."""
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=settings.rabbitmq_host))
         channel = connection.channel()
-        channel.queue_declare(queue='order_created')
+        
+        # Vytvoříme ústřednu typu 'fanout'
+        channel.exchange_declare(exchange='order_events', exchange_type='fanout')
         
         message = {
             "order_id": order.id,
@@ -40,11 +41,17 @@ def publish_order_created(order: Order):
             "quantity": order.quantity
         }
         
-        channel.basic_publish(exchange='', routing_key='order_created', body=json.dumps(message))
+        # Publikujeme do EXCHANGE, ne do fronty (routing_key je prázdný)
+        channel.basic_publish(
+            exchange='order_events',
+            routing_key='',
+            body=json.dumps(message)
+        )
         connection.close()
-        print(f" [x] Zpráva o objednávce {order.id} odeslána do RabbitMQ!")
+        print(f" [📣] Objednávka {order.id} publikována přes Exchange!")
     except Exception as e:
         print(f" [!] Chyba RabbitMQ: {e}")
+
 
 # --- 4. LIFESPAN (STARTUP LOGIKA) ---
 @asynccontextmanager

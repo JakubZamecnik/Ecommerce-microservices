@@ -50,3 +50,15 @@ services:
     depends_on:
       - rabbitmq
 
+  notifications-service:
+    build: ./notifications-service
+    container_name: notifications-service
+    tty: true
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+    volumes:
+      - ./notifications-service:/app
+    depends_on:
+      - rabbitmq
