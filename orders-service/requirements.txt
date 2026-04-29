@@ -1,0 +1,8 @@
+fastapi[all]       # Framework a Pydantic
+sqlmodel           # Moderní spojení SQLAlchemy a Pydantic (super pro FastAPI)
+asyncpg            
+psycopg2-binary    # Driver pro PostgreSQL
+alembic            # Migrace databáze (nutnost pro mediora)
+uvicorn
+pika  # Standardní Python knihovna pro RabbitMQ
+pydantic-settings

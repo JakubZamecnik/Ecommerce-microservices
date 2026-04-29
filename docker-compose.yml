@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  # Databáze pro objednávky
+  orders-db:
+    image: postgres:15-alpine
+    container_name: orders-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: orders_db
+    ports:
+      - "5433:5432"
+
+  # Message Broker (Pošťák mezi službami)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"   # Komunikační port pro Python
+      - "15672:15672" # Webové rozhraní (uvidíš tam fronty)
+
+  # Služba pro objednávky (FastAPI)
+  orders-service:
+    build: ./orders-service
+    container_name: orders-service
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./orders-service:/app
+    env_file:
+      - .env  # Docker automaticky načte proměnné ze souboru do kontejneru
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+    depends_on:
+      - orders-db
+      - rabbitmq
+
+  inventory-service:
+    build: ./inventory-service
+    container_name: inventory-service
+    tty: true
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+    volumes:
+      - ./inventory-service:/app
+    depends_on:
+      - rabbitmq
+
